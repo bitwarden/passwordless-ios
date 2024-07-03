@@ -2,35 +2,14 @@ import Foundation
 import AuthenticationServices
 
 public class PasswordlessClient {
-    private let apiUrl: String
-    private let apiKey: String
-    private let rpId: String
-    private let origin: String
-    private let relyingPartyIdentifier: String
+    private let config: PasswordlessConfig
     private let apiService: PasswordlessAPIService
     private let keyProvider: KeyCredentialProvider
 
-    public init(
-        apiUrl: String,
-        apiKey: String,
-        rpId: String,
-        origin: String,
-        relyingPartyIdentifier: String
-    ) {
-        self.apiUrl = apiUrl
-        self.apiKey = apiKey
-        self.rpId = rpId
-        self.origin = origin
-        self.relyingPartyIdentifier = relyingPartyIdentifier
-
-        apiService = PasswordlessAPIService(
-            apiUrl: apiUrl,
-            apiKey: apiKey,
-            rpId: rpId,
-            origin: origin
-        )
-
-        keyProvider = KeyCredentialProvider(relyingPartyIdentifier: relyingPartyIdentifier)
+    public init(config: PasswordlessConfig) {
+        self.config = config
+        apiService = PasswordlessAPIService(config: config)
+        keyProvider = KeyCredentialProvider(relyingPartyIdentifier: config.rpId)
     }
 
     public func register(token: String) async throws -> String {
@@ -41,8 +20,8 @@ public class PasswordlessClient {
         let request = RegisterCompleteRequest(
             session: registerResponse.session,
             response: AttestationRawResponse(credential: credential),
-            origin: origin,
-            rpId: rpId,
+            origin: config.origin,
+            rpId: config.rpId,
             nickname: nil
         )
         return (try await apiService.registerComplete(requestModel: request)).token
@@ -59,8 +38,8 @@ public class PasswordlessClient {
         let request = SignInCompleteRequest(
             session: signInResponse.session,
             response: AssertionRawResponse(credential: credential),
-            origin: origin,
-            rpId: rpId
+            origin: config.origin,
+            rpId: config.rpId
         )
         return try await apiService.signInComplete(requestModel: request).token
     }

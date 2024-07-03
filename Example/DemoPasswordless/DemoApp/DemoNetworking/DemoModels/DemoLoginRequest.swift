@@ -1,5 +1,5 @@
 import Foundation
 
-struct DemoLoginRequestModel: Encodable {
+struct DemoLoginRequest: Encodable {
     let token: String
 }

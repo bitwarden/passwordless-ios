@@ -2,23 +2,14 @@ import Foundation
 import OSLog
 
 class PasswordlessAPIService {
-    private let apiUrl: String
-    private let apiKey: String
-    private let rpId: String
-    private let origin: String
+    private let config: PasswordlessConfig
     private let urlSession: URLSession
 
     init(
-        apiUrl: String,
-        apiKey: String,
-        rpId: String,
-        origin: String,
+        config: PasswordlessConfig,
         urlSession: URLSession = URLSession.shared
     ) {
-        self.apiUrl = apiUrl
-        self.apiKey = apiKey
-        self.rpId = rpId
-        self.origin = origin
+        self.config = config
         self.urlSession = urlSession
     }
 
@@ -26,7 +17,7 @@ class PasswordlessAPIService {
         let request = try buildRequest(
             path: "/register/begin",
             method: "POST",
-            body: RegisterBeginRequest(token: token, rpId: rpId, origin: origin)
+            body: RegisterBeginRequest(token: token, rpId: config.rpId, origin: config.origin)
         )
         return try await make(request: request)
     }
@@ -44,7 +35,7 @@ class PasswordlessAPIService {
         let request = try buildRequest(
             path: "/signin/begin",
             method: "POST",
-            body: SignInBeginRequest(userId: userId, alias: alias, rpId: rpId, origin: origin)
+            body: SignInBeginRequest(userId: userId, alias: alias, rpId: config.rpId, origin: config.origin)
         )
         return try await make(request: request)
     }
@@ -64,8 +55,8 @@ extension PasswordlessAPIService{
         method: String = "GET",
         body: Encodable
     ) throws -> URLRequest {
-        guard let url = URL(string: "\(apiUrl)\(path)") else {
-            throw PasswordlessClientError.internalErrorInvalidURL("\(apiUrl)\(path)")
+        guard let url = URL(string: "\(config.apiUrl)\(path)") else {
+            throw PasswordlessClientError.internalErrorInvalidURL("\(config.apiUrl)\(path)")
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -76,7 +67,7 @@ extension PasswordlessAPIService{
     private func make<T: Decodable>(request: URLRequest) async throws -> T {
         var updatedRequest = request
         updatedRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        updatedRequest.setValue(apiKey, forHTTPHeaderField: "Apikey")
+        updatedRequest.setValue(config.apiKey, forHTTPHeaderField: "Apikey")
 
         let data: Data
         let dataString: String

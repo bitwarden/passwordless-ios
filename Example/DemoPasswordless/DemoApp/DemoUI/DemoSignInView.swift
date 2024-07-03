@@ -5,12 +5,14 @@ struct DemoSignInView: View {
     @EnvironmentObject private var environment: DemoEnvironmentItems
     @State private var alertItem: AlertItem?
     @State private var username: String = ""
+    @FocusState private var usernameFocused: Bool
 
     var body: some View {
         VStack {
             TextField("Username", text: $username)
                 .textFieldStyle(.roundedBorder)
                 .textContentType(.username)
+                .focused($usernameFocused, equals: true)
 
             signInButton
             Spacer()
@@ -73,11 +75,21 @@ struct DemoSignInView: View {
                 let verifyToken = try await environment.services.passwordlessClient.signIn(
                     alias: autoFill ? nil : username
                 )
+                environment.showLoader = true
+                usernameFocused = false
+
                 let jwtToken = await environment.services.demoAPIService.login(verifyToken: verifyToken)
                 environment.authToken = jwtToken.jwtToken
+                environment.userId = try jwtToken.jwtToken.decodedUserName()
             } catch PasswordlessClientError.authorizationCancelled {
                 print("Cancelled")
-            } catch {
+            } catch PasswordlessClientError.authorizationError(let error) {
+                alertItem = AlertItem(
+                    title: "Authorization Failure",
+                    message: "\(error.localizedDescription)"
+                )
+            }
+            catch {
                 print(error)
 
                 alertItem = AlertItem(
@@ -85,6 +97,7 @@ struct DemoSignInView: View {
                     message: "\(error)"
                 )
                     
+                // Start listening again for autofill.
                 startAuthorization(autoFill: true)
             }
         }

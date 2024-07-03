@@ -1,5 +1,5 @@
 import Foundation
 
-struct DemoLoginResponseModel: Decodable {
+struct DemoLoginResponse: Decodable {
     let jwtToken: String
 }

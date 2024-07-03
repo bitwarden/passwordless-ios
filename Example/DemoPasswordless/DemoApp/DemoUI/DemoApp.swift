@@ -9,7 +9,7 @@ struct DemoApp: App {
             Group {
                 if environmentItems.authToken != nil {
                     NavigationStack {
-                        DemoProfileView()
+                        DemoUserCredentialsView()
                     }
                 } else {
                     NavigationStack {

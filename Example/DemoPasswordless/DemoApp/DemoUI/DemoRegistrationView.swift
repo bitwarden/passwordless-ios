@@ -6,10 +6,16 @@ struct DemoRegistrationView: View {
     @EnvironmentObject private var environment: DemoEnvironmentItems
     @State private var alertItem: AlertItem?
     @State private var username: String = ""
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
 
     var body: some View {
         VStack {
             TextField("Username", text: $username)
+                .textFieldStyle(.roundedBorder)
+            TextField("First Name", text: $firstName)
+                .textFieldStyle(.roundedBorder)
+            TextField("Last Name", text: $lastName)
                 .textFieldStyle(.roundedBorder)
             requestButton
             Spacer()
@@ -44,10 +50,15 @@ struct DemoRegistrationView: View {
             environment.showLoader = true
             defer { environment.showLoader = false }
             do {
-                let registrationToken = await environment.services.demoAPIService.register(username: username).token
+                let registrationToken = await environment.services.demoAPIService.register(
+                    username: username,
+                    firstName: firstName,
+                    lastName: lastName
+                ).token
                 let verifyToken = try await environment.services.passwordlessClient.register(token: registrationToken)
                 let jwtToken = await environment.services.demoAPIService.login(verifyToken: verifyToken)
                 environment.authToken = jwtToken.jwtToken
+                environment.userId = try jwtToken.jwtToken.decodedUserName()
 
                 await MainActor.run {
                     dismiss()
