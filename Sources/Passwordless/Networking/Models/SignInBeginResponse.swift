@@ -1,5 +1,9 @@
 import Foundation
 
+// MARK: SignInBeginResponse
+
+/// Model used for body of the `/signin/begin` response.
+///
 struct SignInBeginResponse: Decodable {
     let data: AssertionOptions
     let session: String

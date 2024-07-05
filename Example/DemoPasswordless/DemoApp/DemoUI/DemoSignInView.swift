@@ -5,14 +5,12 @@ struct DemoSignInView: View {
     @EnvironmentObject private var environment: DemoEnvironmentItems
     @State private var alertItem: AlertItem?
     @State private var username: String = ""
-    @FocusState private var usernameFocused: Bool
 
     var body: some View {
         VStack {
             TextField("Username", text: $username)
                 .textFieldStyle(.roundedBorder)
                 .textContentType(.username)
-                .focused($usernameFocused, equals: true)
 
             signInButton
             Spacer()
@@ -21,7 +19,9 @@ struct DemoSignInView: View {
         .padding()
         .navigationStyle("Sign In")
         .onAppear {
-            startAuthorization(autoFill: true)
+            if !Preview.inPreviewMode {
+                startAuthorization(autoFill: true)
+            }
         }
         .onDisappear {
             Task {
@@ -63,7 +63,11 @@ struct DemoSignInView: View {
         .tint(.red)
         .buttonStyle(.borderedProminent)
     }
+}
 
+// MARK: Passwordless SDK integration
+
+private extension DemoSignInView {
     private func startAuthorization(autoFill: Bool) {
         Task {
             if !autoFill {
@@ -72,12 +76,14 @@ struct DemoSignInView: View {
             defer { environment.showLoader = false }
 
             do {
+                // 1a. If autofill mode, begin sign in process to monitor for keyboard shortcut.
+                // 1b. If signing in from user manual entry, begin sign in process immediately.
                 let verifyToken = try await environment.services.passwordlessClient.signIn(
                     alias: autoFill ? nil : username
                 )
                 environment.showLoader = true
-                usernameFocused = false
 
+                // 2. With the resulting token from the SDK, verify it with your backend to get an authorization token.
                 let jwtToken = await environment.services.demoAPIService.login(verifyToken: verifyToken)
                 environment.authToken = jwtToken.jwtToken
                 environment.userId = try jwtToken.jwtToken.decodedUserName()

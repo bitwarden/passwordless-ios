@@ -1,6 +1,10 @@
 import AuthenticationServices
 import Foundation
 
+// MARK: RegisterCompleteRequest
+
+/// Model used for body of the `/register/complete` request.
+///
 struct RegisterCompleteRequest: Encodable {
     let session: String
     let response: AttestationRawResponse
@@ -16,18 +20,20 @@ struct AttestationRawResponse: Encodable {
     let response: AttestationResponse
     let extensions: [String: [String: Bool]]
 
-    init(credential: ASAuthorizationPlatformPublicKeyCredentialRegistration) {
-        id = credential.credentialID.base64URLEncodedString()
-        rawId = credential.credentialID.base64URLEncodedString()
+    init(
+        credentialID: Data,
+        rawAttestationObject: Data?,
+        rawClientDataJSON: Data
+    ) {
+        id = credentialID.base64URLEncodedString()
+        rawId = credentialID.base64URLEncodedString()
         type = "public-key"
         response = AttestationResponse(
-            attestationObject: credential.rawAttestationObject?.base64URLEncodedString(),
-            clientDataJSON: credential.rawClientDataJSON.base64URLEncodedString(),
+            attestationObject: rawAttestationObject?.base64URLEncodedString(),
+            clientDataJSON: rawClientDataJSON.base64URLEncodedString(),
             transports: nil
         )
-        // hardcoded for now to get the API to work, but there's a fix going
-        // into the server to allow this to be optional.
-        extensions = ["credProps": ["rk": true ]]
+        extensions = [:]
     }
 }
 

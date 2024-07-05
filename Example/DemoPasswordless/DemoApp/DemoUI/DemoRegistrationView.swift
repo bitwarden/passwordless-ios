@@ -44,18 +44,27 @@ struct DemoRegistrationView: View {
         .tint(.red)
         .buttonStyle(.borderedProminent)
     }
+}
 
+// MARK: Passwordless SDK integration
+
+extension DemoRegistrationView {
     private func requestAuthorization() {
         Task {
             environment.showLoader = true
             defer { environment.showLoader = false }
             do {
+                // 1. Begin registration be requesting a token from your server.
                 let registrationToken = await environment.services.demoAPIService.register(
                     username: username,
                     firstName: firstName,
                     lastName: lastName
                 ).token
+
+                // 2. Register the token through the SDK, which creates a private key for the token.
                 let verifyToken = try await environment.services.passwordlessClient.register(token: registrationToken)
+                
+                // 3. With the resulting token from the SDK, verify it with your backend to get an authorization token.
                 let jwtToken = await environment.services.demoAPIService.login(verifyToken: verifyToken)
                 environment.authToken = jwtToken.jwtToken
                 environment.userId = try jwtToken.jwtToken.decodedUserName()

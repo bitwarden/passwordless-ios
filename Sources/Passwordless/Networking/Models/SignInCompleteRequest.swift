@@ -1,6 +1,10 @@
 import AuthenticationServices
 import Foundation
 
+// MARK: SignInCompleteRequest
+
+/// Model used for body of the `/signin/complete` request.
+///
 struct SignInCompleteRequest: Encodable {
     let session: String
     let response: AssertionRawResponse
@@ -15,14 +19,19 @@ struct AssertionRawResponse: Encodable {
     let response: AssertionResponse
     let extensions: [String : String]?
 
-    init(credential: ASAuthorizationPlatformPublicKeyCredentialAssertion) {
-        id = credential.credentialID.base64URLEncodedString()
-        rawId = credential.credentialID.base64URLEncodedString()
+    init(
+        credentialID: Data,
+        rawAuthenticatorData: Data,
+        rawClientDataJSON: Data,
+        signature: Data
+    ) {
+        id = credentialID.base64URLEncodedString()
+        rawId = credentialID.base64URLEncodedString()
         type = "public-key"
         response = AssertionResponse(
-            authenticatorData: credential.rawAuthenticatorData.base64URLEncodedString(),
-            clientDataJSON: credential.rawClientDataJSON.base64URLEncodedString(),
-            signature: credential.signature.base64URLEncodedString()
+            authenticatorData: rawAuthenticatorData.base64URLEncodedString(),
+            clientDataJSON: rawClientDataJSON.base64URLEncodedString(),
+            signature: signature.base64URLEncodedString()
         )
         extensions = [:]
     }

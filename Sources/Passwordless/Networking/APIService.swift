@@ -1,10 +1,24 @@
 import Foundation
 import OSLog
 
-class PasswordlessAPIService {
+// MARK: APIService
+
+/// The API Service that communicates with the backend.
+///
+class APIService {
+    /// The configuration items needed to make API requests.
     private let config: PasswordlessConfig
+
+    /// The URLSession object used to make the network requests. 
     private let urlSession: URLSession
 
+    /// Initializes an APIService.
+    ///
+    /// - Parameters:
+    ///    - config: The configuration items needed to make API requests.
+    ///    - urlSession: The URLSession object used to make the network requests. Defaults to shared.
+    ///    Used for injection for testing purposes.
+    ///
     init(
         config: PasswordlessConfig,
         urlSession: URLSession = URLSession.shared
@@ -12,7 +26,19 @@ class PasswordlessAPIService {
         self.config = config
         self.urlSession = urlSession
     }
+}
 
+// MARK: APIServiceProtocol
+
+/// Protocol that defines the items needed to register and sign in within an APIService.
+///
+extension APIService: APIServiceProtocol {
+    /// Makes a call to begin registration.
+    ///
+    /// - Parameter token: A token provided from the relying party backend.
+    ///
+    /// - Returns: A response model containing challenge data for the user.
+    ///
     func registerBegin(token: String) async throws -> RegisterBeginResponse {
         let request = try buildRequest(
             path: "/register/begin",
@@ -22,6 +48,12 @@ class PasswordlessAPIService {
         return try await make(request: request)
     }
 
+    /// Makes a call to complete registration.
+    ///
+    /// - Parameter requestModel: An object that provides the resulting information from the Apple authorization steps.
+    ///
+    /// - Returns: A response model containing results from the challenge request.
+    ///
     func registerComplete(requestModel: RegisterCompleteRequest) async throws -> RegisterCompleteResponse {
         let request = try buildRequest(
             path: "/register/complete",
@@ -31,6 +63,14 @@ class PasswordlessAPIService {
         return try await make(request: request)
     }
 
+    /// Makes a call to begin sign in. Providing no alias will put the Apple authorization in auto fill mode.
+    ///
+    /// - Parameters:
+    ///    - alias: An alias for the the user (aka username).
+    ///    - userId: The raw user Id.
+    ///
+    /// - Returns: A response model containing challenge data for the user.
+    ///
     func signInBegin(alias: String? = nil, userId: String? = nil) async throws -> SignInBeginResponse {
         let request = try buildRequest(
             path: "/signin/begin",
@@ -40,6 +80,12 @@ class PasswordlessAPIService {
         return try await make(request: request)
     }
 
+    /// Makes a call to complete sign in.
+    ///
+    /// - Parameter requestModel: An object that provides the resulting information from the Apple authorization steps.
+    ///
+    /// - Returns: A response model containing results from the challenge request.
+    ///
     func signInComplete(requestModel: SignInCompleteRequest) async throws -> SignInCompleteResponse {
         let request = try buildRequest(
             path: "/signin/complete",
@@ -49,7 +95,18 @@ class PasswordlessAPIService {
     }
 }
 
-extension PasswordlessAPIService{
+// MARK: Private helpers
+
+extension APIService{
+    /// Creates a URLRequest.
+    ///
+    /// - Parameters:
+    ///    - path: The path to append to the end of the apiUrl provided in the config.
+    ///    - method: The request method. Defaults to GET.
+    ///    - body: The encodable object to put into the request body.
+    ///
+    /// - Returns: A response model containing challenge data for the user.
+    ///
     private func buildRequest(
         path: String,
         method: String = "GET",
@@ -64,6 +121,12 @@ extension PasswordlessAPIService{
         return request
     }
 
+    /// Make the authorized http request and return the response object for the given return type.
+    ///
+    /// - Parameter request: The URLRequest to make.
+    ///
+    /// - Returns: The response object decoded from the response body json.
+    ///
     private func make<T: Decodable>(request: URLRequest) async throws -> T {
         var updatedRequest = request
         updatedRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")

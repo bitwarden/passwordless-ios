@@ -2,19 +2,61 @@ import AuthenticationServices
 import Foundation
 import OSLog
 
+// MARK: KeyCredentialProvider
+
+/// The key credential provider that utilizes an authorization controller to aid in registration and sign in
+/// validation of the local iOS user.
+/// 
 class KeyCredentialProvider: NSObject  {
-    private let relyingPartyIdentifier: String
-    private var authController: ASAuthorizationController?
+    /// The relying party identifier.
+    private let rpId: String
+
+    /// A wrapper object that manages an ASAuthenticationController.
+    private var authControllerWrapper: ASAuthorizationControllerWrapperProtocol
+
+    /// Whether or not an authorization session is currently in progress.
     private var isRunning = false
-    private var registrationContinuation: CheckedContinuation<ASAuthorizationPlatformPublicKeyCredentialRegistration, Error>?
-    private var assertionContinuation: CheckedContinuation<ASAuthorizationPlatformPublicKeyCredentialAssertion, Error>?
+
+    /// Registration continuation property to flatten the delegation from the authControllerWrapper.
+    private var registrationContinuation: CheckedContinuation<AttestationRawResponse, Error>?
+
+    /// Assertion continuation property to flatten the delegation from the authControllerWrapper.
+    private var assertionContinuation: CheckedContinuation<AssertionRawResponse, Error>?
+
+    /// Cancel continuation property to flatten the delegation from the authControllerWrapper.
     private var cancelContinuation: CheckedContinuation<Void, Never>?
 
-    init(relyingPartyIdentifier: String) {
-        self.relyingPartyIdentifier = relyingPartyIdentifier
-    }
+    /// Initializes a KeyCredentialProvider.
+    ///
+    /// - Parameters:
+    ///    - rpId: The relying party identifier.
+    ///    - authControllerWrapper: A wrapper object that allows for injection of the
+    ///    ASAuthenticationController. Defaults to the real Apple controller.
+    ///
+    init(
+        rpId: String,
+        authControllerWrapper: ASAuthorizationControllerWrapperProtocol = ASAuthorizationControllerWrapper()
+    ) {
+        self.rpId = rpId
+        self.authControllerWrapper = authControllerWrapper
 
-    func requestAuthorization(registerResponse: RegisterBeginResponse) async throws -> ASAuthorizationPlatformPublicKeyCredentialRegistration {
+        super.init()
+        self.authControllerWrapper.delegate = self
+    }
+}
+
+// MARK: KeyCredentialProviderProtocol
+
+/// Protocol that defines a key credential provider.
+///
+extension KeyCredentialProvider: KeyCredentialProviderProtocol {
+    /// Request an authorization response from the key credential provider.
+    ///
+    /// - Parameter registerResponse: Object provided by relying party identifier containing challenge information.
+    ///
+    /// - Returns: The attestation result from the authorization request.
+    ///
+    func requestAuthorization(registerResponse: RegisterBeginResponse) async throws -> AttestationRawResponse {
         await cancelExistingRequest()
 
         Logger().info("Apple Authorization for registration is running")
@@ -27,23 +69,32 @@ class KeyCredentialProvider: NSObject  {
         }
         let name = registerResponse.data.user.name
 
-        let platformProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: relyingPartyIdentifier)
-        let platformKeyRequest = platformProvider.createCredentialRegistrationRequest(challenge: challenge, name: name, userID: userId)
-        authController = ASAuthorizationController(authorizationRequests: [platformKeyRequest])
-        authController?.delegate = self
-        authController?.presentationContextProvider = self
+        authControllerWrapper.createControllerForRegistration(
+            rpId: rpId,
+            challenge: challenge,
+            name: name,
+            userId: userId
+        )
 
         return try await withCheckedThrowingContinuation { continuation in
             isRunning = true
             registrationContinuation = continuation
-            authController?.performRequests()
+            authControllerWrapper.performRequests()
         }
     }
 
+    /// Request an assertion response from the key credential provider.
+    ///
+    /// - Parameters:
+    ///    - signInResponse: Object provided by relying party identifier containing challenge information.
+    ///    - autoFill: Whether or not the request should use auto fill mode.
+    ///
+    /// - Returns: The assertion result from the authorization request.
+    ///
     func requestAssertion(
         signInResponse: SignInBeginResponse,
         autoFill: Bool
-    ) async throws -> ASAuthorizationPlatformPublicKeyCredentialAssertion {
+    ) async throws -> AssertionRawResponse {
         await cancelExistingRequest()
 
         Logger().info("Apple Assertion for sign in running(autofill: \(autoFill))")
@@ -52,56 +103,68 @@ class KeyCredentialProvider: NSObject  {
             throw PasswordlessClientError.internalErrorUnableToDecodeChallenge
         }
 
-        let platformProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: relyingPartyIdentifier)
-        let platformKeyRequest = platformProvider.createCredentialAssertionRequest(challenge: challenge)
-        authController = ASAuthorizationController(authorizationRequests: [platformKeyRequest])
-        authController?.delegate = self
-        authController?.presentationContextProvider = self
+        authControllerWrapper.createControllerForAssertion(
+            rpId: rpId,
+            challenge: challenge
+        )
 
         return try await withCheckedThrowingContinuation { continuation in
             isRunning = true
             assertionContinuation = continuation
             if autoFill {
-                authController?.performAutoFillAssistedRequests()
+                authControllerWrapper.performAutoFillAssistedRequests()
             } else {
-                authController?.performRequests()
+                authControllerWrapper.performRequests()
             }
         }
     }
 
+    /// Cancels the authorization process for the key credential provider.
+    ///
     func cancelExistingRequest() async {
         if isRunning {
             await withCheckedContinuation { continuation in
                 cancelContinuation = continuation
-                authController?.cancel()
+                authControllerWrapper.cancel()
             }
         }
     }
 }
 
-extension KeyCredentialProvider: ASAuthorizationControllerDelegate {
-    func authorizationController(
-        controller: ASAuthorizationController,
-        didCompleteWithAuthorization authorization: ASAuthorization
-    ) {
-        if let credential = authorization.credential as? ASAuthorizationPlatformPublicKeyCredentialRegistration {
-            registrationContinuation?.resume(returning: credential)
-            registrationContinuation = nil
-        } else if let credential = authorization.credential as? ASAuthorizationPlatformPublicKeyCredentialAssertion {
-            assertionContinuation?.resume(returning: credential)
-            assertionContinuation = nil
-        } else {
-            Logger().warning("Apple Authorization: Other auth case triggered, such as 'sign in with apple'")
-        }
+// MARK: AuthorizationControllerWrapperDelegate
+
+/// Delegate that defines responses from the Apple authorization controller.
+///
+extension KeyCredentialProvider: AuthorizationControllerWrapperDelegate {
+    /// The Apple authorization controller completed the registration steps.
+    ///
+    /// - Parameter attestation: The object containing the resulting information about the Apple authorization.
+    ///
+    func didCompleteWithRegistration(attestation: AttestationRawResponse) {
         isRunning = false
+        registrationContinuation?.resume(returning: attestation)
+        registrationContinuation = nil
 
         Logger().info("Apple Authorization: Complete")
     }
+    
+    /// The Apple authorization controller completed the sign in/assertion steps.
+    ///
+    /// - Parameter assertion: The object containing the resulting information about the Apple authorization.
+    ///
+    func didCompleteWithAssertion(assertion: AssertionRawResponse) {
+        isRunning = false
+        assertionContinuation?.resume(returning: assertion)
+        assertionContinuation = nil
 
-    func authorizationController(
-        controller: ASAuthorizationController,
-        didCompleteWithError error: Error
-    ) {
+        Logger().info("Apple Authorization: Complete")
+    }
+    
+    /// The Apple authorization controller completed with an error.
+    ///
+    /// - Parameter error: The error that occurred during the Apple authorization.
+    ///
+    func didCompleteWithError(error: Error) {
         if (error as? ASAuthorizationError)?.code == .canceled {
             Logger().info("Apple Authorization: Ongoing authorization was cancelled")
             registrationContinuation?.resume(throwing: PasswordlessClientError.authorizationCancelled)
@@ -118,11 +181,5 @@ extension KeyCredentialProvider: ASAuthorizationControllerDelegate {
             assertionContinuation = nil
         }
         isRunning = false
-    }
-}
-
-extension KeyCredentialProvider: ASAuthorizationControllerPresentationContextProviding {
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        ASPresentationAnchor()
     }
 }

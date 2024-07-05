@@ -31,13 +31,27 @@ struct DemoUserCredentialsView: View {
             }
         }
         .onAppear {
-            Task {
-                credentials = await environment.services.demoAPIService.fetchCredentials(
-                    userId: environment.userId ?? "",
-                    authToken: environment.authToken ?? ""
-                )
-                .sorted { $0.createdAt > $1.createdAt }
+            if !Preview.inPreviewMode {
+                Task {
+                    await fetchCredentials()
+                }
             }
         }
     }
+}
+
+// MARK: Network Call
+
+extension DemoUserCredentialsView {
+    private func fetchCredentials() async {
+        credentials = await environment.services.demoAPIService.fetchCredentials(
+            userId: environment.userId ?? "",
+            authToken: environment.authToken ?? ""
+        )
+        .sorted { $0.createdAt > $1.createdAt }
+    }
+}
+
+#Preview {
+    DemoUserCredentialsView()
 }

@@ -1,5 +1,7 @@
 import Foundation
 
+/// String extensions to clean up base 64 URL encoding.
+///
 extension String {
     func base64URLDecodedData() -> Data? {
         var base64 = self
