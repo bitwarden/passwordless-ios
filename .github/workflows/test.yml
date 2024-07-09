@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_15.2.app/Contents/Developer
+  SIMULATOR_DESTINATION: platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2
+
+jobs:
+  check-run:
+    name: Check PR run
+    uses: bitwarden/gh-actions/.github/workflows/check-run.yml@main
+  
+  test:
+    name: Test
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Test
+        run: |
+          set -o pipefail && \
+            xcodebuild test \
+            -scheme Passwordless \
+            -destination "${{ env.SIMULATOR_DESTINATION }}" \
+            -derivedDataPath build/DerivedData \
+            | xcbeautify --renderer github-actions
