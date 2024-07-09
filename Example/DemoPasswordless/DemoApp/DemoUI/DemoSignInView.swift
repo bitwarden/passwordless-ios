@@ -8,7 +8,12 @@ struct DemoSignInView: View {
 
     var body: some View {
         VStack {
+            Image(.logo)
+                .resizable()
+                .frame(width: 150, height: 150)
+                .padding(.vertical, 24)
             TextField("Username", text: $username)
+                .autocorrectionDisabled()
                 .textFieldStyle(.roundedBorder)
                 .textContentType(.username)
 
@@ -17,6 +22,7 @@ struct DemoSignInView: View {
             createButton
         }
         .padding()
+        .ignoresSafeArea(.keyboard)
         .navigationStyle("Sign In")
         .onAppear {
             if !Preview.inPreviewMode {

@@ -13,10 +13,13 @@ struct DemoRegistrationView: View {
         VStack {
             TextField("Username", text: $username)
                 .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
             TextField("First Name", text: $firstName)
                 .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
             TextField("Last Name", text: $lastName)
                 .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
             requestButton
             Spacer()
         }
@@ -54,7 +57,7 @@ extension DemoRegistrationView {
             environment.showLoader = true
             defer { environment.showLoader = false }
             do {
-                // 1. Begin registration be requesting a token from your server.
+                // 1. Begin registration by requesting a token from your server.
                 let registrationToken = await environment.services.demoAPIService.register(
                     username: username,
                     firstName: firstName,

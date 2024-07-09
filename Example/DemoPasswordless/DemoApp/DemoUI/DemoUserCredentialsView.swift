@@ -5,6 +5,8 @@ struct DemoUserCredentialsView: View {
     @State private var credentials: [DemoCredentialsResponse] = []
 
     var body: some View {
+        Text("✅ You're signed in! ✅")
+            .padding()
         List(credentials) { credential in
             VStack(alignment: .leading) {
                 Text("**Public Key:** \(credential.publicKey)")
