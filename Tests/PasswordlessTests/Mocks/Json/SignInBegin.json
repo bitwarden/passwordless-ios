@@ -1,0 +1,12 @@
+{
+    "data": {
+      "challenge": "",
+      "timeout": 60000,
+      "rpId": "",
+      "allowCredentials": [],
+      "userVerification": "preferred",
+      "status": "ok",
+      "errorMessage": ""
+    },
+    "session": "session_abcdefghijklmnopqrstuvwxyz"
+}
