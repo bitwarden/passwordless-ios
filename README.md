@@ -44,7 +44,6 @@ Here is an example of a configuration:
 ```swift
 let passwordlessClient = PasswordlessClient(
     config: PasswordlessConfig(
-        apiUrl: "https://v4.passwordless.dev",
         apiKey: "<YOUR API KEY>",
         rpId: "demo.passwordless.dev",
         origin: "https://demo.passwordless.dev"
