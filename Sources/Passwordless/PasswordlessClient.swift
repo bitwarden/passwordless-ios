@@ -75,6 +75,9 @@ public class PasswordlessClient {
     ///
     /// - Returns: A token that can be verified by the relying party backend.
     ///
+    public func signInWithAutofill(alias: String? = nil) async throws -> String {
+    public func signInWithUserId(alias: String? = nil) async throws -> String {
+    public func signInWithAlias(alias: String? = nil) async throws -> String {
     public func signIn(alias: String? = nil) async throws -> String {
         let signInResponse = try await apiService.signInBegin(alias: alias)
 
