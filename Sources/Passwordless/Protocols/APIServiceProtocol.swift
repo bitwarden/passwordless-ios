@@ -49,7 +49,7 @@ extension APIServiceProtocol {
     ///
     /// - Returns: A response model containing challenge data for the user.
     ///
-    func signInBegin(alias: String?) async throws -> SignInBeginResponse {
-        try await signInBegin(alias: alias, userId: nil)
+    func signInBegin(alias: String? = nil, userId: String? = nil) async throws -> SignInBeginResponse {
+        try await signInBegin(alias: alias, userId: userId)
     }
 }

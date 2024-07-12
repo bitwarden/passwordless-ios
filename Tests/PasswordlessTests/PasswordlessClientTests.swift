@@ -22,6 +22,11 @@ final class PasswordlessClientTests: XCTestCase {
         )
     }
 
+    func testCancel() async throws {
+        await subject.cancelExistingRequests()
+        XCTAssertTrue(keyCredentialProvider.calledCancelExistingRequest)
+    }
+
     func testRegister() async throws {
         _ = try await subject.register(token: "")
         XCTAssertTrue(apiService.calledRegisterBegin)
@@ -29,15 +34,31 @@ final class PasswordlessClientTests: XCTestCase {
         XCTAssertTrue(apiService.calledRegisterComplete)
     }
 
-    func testSignIn() async throws {
-        _ = try await subject.signIn()
+    func testSignInWithAlias() async throws {
+        _ = try await subject.signIn(alias: "Bender")
         XCTAssertTrue(apiService.calledSignInBegin)
         XCTAssertTrue(keyCredentialProvider.calledRequestAssertion)
         XCTAssertTrue(apiService.calledSignInComplete)
     }
 
-    func testCancel() async throws {
-        await subject.cancelExistingRequests()
-        XCTAssertTrue(keyCredentialProvider.calledCancelExistingRequest)
+    func testSignInWithUserId() async throws {
+        _ = try await subject.signIn(userId: "12345")
+        XCTAssertTrue(apiService.calledSignInBegin)
+        XCTAssertTrue(keyCredentialProvider.calledRequestAssertion)
+        XCTAssertTrue(apiService.calledSignInComplete)
+    }
+
+    func testSignInWithAutofill() async throws {
+        _ = try await subject.signInWithAutofill()
+        XCTAssertTrue(apiService.calledSignInBegin)
+        XCTAssertTrue(keyCredentialProvider.calledRequestAssertion)
+        XCTAssertTrue(apiService.calledSignInComplete)
+    }
+
+    func testSignInWithDiscoverable() async throws {
+        _ = try await subject.signinWithDiscoverable()
+        XCTAssertTrue(apiService.calledSignInBegin)
+        XCTAssertTrue(keyCredentialProvider.calledRequestAssertion)
+        XCTAssertTrue(apiService.calledSignInComplete)
     }
 }

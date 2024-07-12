@@ -19,7 +19,7 @@ extension String {
         return (json as? [String: Any]) ?? [:]
     }
 
-    func decodedUserName() throws -> String? {
+    func decodedUserId() throws -> String? {
         let decodedJWT = try decodeJWT()
         return decodedJWT["nameid"]  as? String
     }

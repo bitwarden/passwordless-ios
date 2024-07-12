@@ -146,9 +146,10 @@ extension APIService{
             throw PasswordlessClientError.internalErrorNetworkRequestFailed(error)
         }
         guard let httpResponse, httpResponse.statusCode < 400 else {
+            let errorResponse = try? JSONDecoder().decode(PasswordlessErrorResponse.self, from: data)
             throw PasswordlessClientError.internalErrorNetworkRequestResponseError(
                 httpResponse?.statusCode,
-                dataString
+                errorResponse
             )
         }
 

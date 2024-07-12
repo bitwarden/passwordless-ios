@@ -106,11 +106,26 @@ final class APIServiceTests: XCTestCase {
     }
 
     func testInternalErrorNetworkRequestResponseError() async throws {
-        MockURLProtocol.mockSuccessFromJson(jsonFile: "SignInBegin", statusCode: 401)
+        MockURLProtocol.mockSuccessFromJson(jsonFile: "SignInBegin", statusCode: 500)
         do {
             _ = try await subject.signInBegin()
             XCTFail("Should have thrown exception")
-        } catch PasswordlessClientError.internalErrorNetworkRequestResponseError {
+        } catch let PasswordlessClientError.internalErrorNetworkRequestResponseError(statusCode, errorResponse) {
+            XCTAssertEqual(statusCode, 500)
+            XCTAssertNil(errorResponse)
+        } catch {
+            XCTFail("Should have thrown internalErrorNetworkRequestResponseError exception")
+        }
+    }
+
+    func testInternalErrorNetworkRequestResponseErrorWithBody() async throws {
+        MockURLProtocol.mockSuccessFromJson(jsonFile: "ErrorResponse", statusCode: 400)
+        do {
+            _ = try await subject.signInBegin()
+            XCTFail("Should have thrown exception")
+        } catch let PasswordlessClientError.internalErrorNetworkRequestResponseError(statusCode, errorResponse) {
+            XCTAssertEqual(statusCode, 400)
+            XCTAssertNotNil(errorResponse)
         } catch {
             XCTFail("Should have thrown internalErrorNetworkRequestResponseError exception")
         }
