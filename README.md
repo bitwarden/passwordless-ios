@@ -21,6 +21,10 @@ For passkeys, you need to set up a `webcredentials` section for your app.
 
 You can view an [example](https://demo.passwordless.dev/.well-known/apple-app-site-association) of an apple-app-site-association that corresponds to the `DemoPasswordless` app provided in this repository.
 
+Here is an example of what the entitlements should look like in Xcode when the AASA is hosted on `demo.passwordless.dev`:
+
+![Entitlements](<./docs/entitlements.png>)
+
 ## Getting Started with the iOS SDK
 
 ### Requirements
