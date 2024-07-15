@@ -27,7 +27,7 @@ In the `DemoServices.swift` file, the relying party ID (`rpID`) should be set to
 
 # Releasing
 ## SPM
-Swift Package Manager works by point to release tags on main.  To create a new release, simply create a new tag on the main branch.
+Swift Package Manager works by pointing to release tags on main.  To create a new release, simply create a new tag on the main branch.
 
 ## CocoaPods
 Please follow the [guide](https://guides.cocoapods.org/making/getting-setup-with-trunk) from CocoaPods.org.  But generally, you want to do the following:
@@ -42,4 +42,4 @@ Please follow the [guide](https://guides.cocoapods.org/making/getting-setup-with
 5. With an active CocoaPod session with maintainer permissions on the pod, run the following to push to the public trunk:
     ```
     pod trunk push
-    ``` 
+    ```
