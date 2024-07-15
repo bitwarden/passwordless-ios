@@ -33,6 +33,12 @@ You can view an [example](https://demo.passwordless.dev/.well-known/apple-app-si
 
 The SDK can be added to your project via [Swift Package Manager](https://www.swift.org/package-manager/). You can then access the SDK functionality using `import Passwordless`.
 
+### CocoaPods
+
+The SDK can be added to your project via [CocoaPods](https://cocoapods.org/). Specify the following in your Podfile:
+
+pod 'Passwordless', '~> 0.0.1'
+
 ### Initialization
 
 The SDK provides a `PasswordlessClient` object that needs to be initialized with a `PasswordlessConfig` configuration. The configuration contains the API URL and API key needed to interface with [Passwordless.dev](https://bitwarden.com/products/passwordless/). It also requires the relying party ID, which represents the domain of your server that hosts an apple-app-site-association file with your app's team ID and bundle ID.

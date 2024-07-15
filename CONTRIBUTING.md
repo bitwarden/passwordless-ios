@@ -24,3 +24,22 @@ For example, let's say your AASA file looks like this:
 To run the demo app without errors, the app's bundle ID must be `com.8bit.bitwarden.passwordlessios`. Furthermore, your personal developer account must have access to the team ID `Q999999997`.
 
 In the `DemoServices.swift` file, the relying party ID (`rpID`) should be set to the domain where this AASA file is hosted.
+
+# Releasing
+## SPM
+Swift Package Manager works by point to release tags on main.  To create a new release, simply create a new tag on the main branch.
+
+## CocoaPods
+Please follow the [guide](https://guides.cocoapods.org/making/getting-setup-with-trunk) from CocoaPods.org.  But generally, you want to do the following:
+
+1. Update the version in the podspec file. 
+2. Merge the podspec into main. 
+3. Create a release tag on the main branch. 
+4. Make sure the pod lints correctly using the following command:
+    ```
+    pod spec lint
+    ```
+5. With an active CocoaPod session with maintainer permissions on the pod, run the following to push to the public trunk:
+    ```
+    pod trunk push
+    ``` 
