@@ -12,10 +12,8 @@ class DemoServices {
     /// server that hosts an apple-app-site-association file with your app's team ID and bundle id.
     let passwordlessClient = PasswordlessClient(
         config: PasswordlessConfig(
-            apiUrl: "https://v4.passwordless.dev",
             apiKey: "pwdemo:public:5aec1f24f65343239bf4e1c9a852e871",
-            rpId: "demo.passwordless.dev",
-            origin: "https://demo.passwordless.dev"
+            rpId: "demo.passwordless.dev"
         )
     )
 }

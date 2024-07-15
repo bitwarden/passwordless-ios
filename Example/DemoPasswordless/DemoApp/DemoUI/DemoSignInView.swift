@@ -76,23 +76,24 @@ struct DemoSignInView: View {
 private extension DemoSignInView {
     private func startAuthorization(autoFill: Bool) {
         Task {
-            if !autoFill {
-                environment.showLoader = true
-            }
             defer { environment.showLoader = false }
 
             do {
-                // 1a. If autofill mode, begin sign in process to monitor for keyboard shortcut.
-                // 1b. If signing in from user manual entry, begin sign in process immediately.
-                let verifyToken = try await environment.services.passwordlessClient.signIn(
-                    alias: autoFill ? nil : username
-                )
-                environment.showLoader = true
+                let verifyToken: String
+                if autoFill {
+                    // 1a. If autofill mode, begin sign in process to monitor for keyboard shortcut.
+                    verifyToken = try await environment.services.passwordlessClient.signInWithAutofill()
+                    environment.showLoader = true
+                } else {
+                    // 1b. If signing in from user manual entry, begin sign in process immediately.
+                    environment.showLoader = true
+                    verifyToken = try await environment.services.passwordlessClient.signIn(alias: username)
+                }
 
                 // 2. With the resulting token from the SDK, verify it with your backend to get an authorization token.
                 let jwtToken = await environment.services.demoAPIService.login(verifyToken: verifyToken)
                 environment.authToken = jwtToken.jwtToken
-                environment.userId = try jwtToken.jwtToken.decodedUserName()
+                environment.userId = try jwtToken.jwtToken.decodedUserId()
             } catch PasswordlessClientError.authorizationCancelled {
                 print("Cancelled")
             } catch PasswordlessClientError.authorizationError(let error) {

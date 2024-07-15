@@ -1,0 +1,6 @@
+{
+  "type": "https://docs.passwordless.dev/errors#missing_register_token",
+  "title": "The token you sent was not correct. The token used for this endpoint should start with 'register_'. Make sure you are not sending the wrong value.",
+  "status": 400,
+  "errorCode": "missing_register_token"
+}

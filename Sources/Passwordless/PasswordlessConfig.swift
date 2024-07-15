@@ -26,14 +26,19 @@ public struct PasswordlessConfig {
     ///    - origin: The origin of the requesting application.
     ///
     public init(
-        apiUrl: String,
+        apiUrl: String = "https://v4.passwordless.dev",
         apiKey: String,
         rpId: String,
-        origin: String
+        origin: String? = nil
     ) {
         self.apiUrl = apiUrl
         self.apiKey = apiKey
         self.rpId = rpId
-        self.origin = origin
+
+        if let origin {
+            self.origin = origin
+        } else {
+            self.origin = "https://\(rpId)"
+        }
     }
 }

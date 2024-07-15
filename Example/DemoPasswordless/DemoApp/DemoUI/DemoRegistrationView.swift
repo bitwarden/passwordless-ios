@@ -40,7 +40,7 @@ struct DemoRegistrationView: View {
         } label: {
             HStack {
                 Image(systemName: "person.badge.key.fill")
-                Text("Register Passkey And Sign in")
+                Text("Register passkey and sign in")
             }
         }
         .disabled(username.isEmpty)
@@ -70,7 +70,7 @@ extension DemoRegistrationView {
                 // 3. With the resulting token from the SDK, verify it with your backend to get an authorization token.
                 let jwtToken = await environment.services.demoAPIService.login(verifyToken: verifyToken)
                 environment.authToken = jwtToken.jwtToken
-                environment.userId = try jwtToken.jwtToken.decodedUserName()
+                environment.userId = try jwtToken.jwtToken.decodedUserId()
 
                 await MainActor.run {
                     dismiss()

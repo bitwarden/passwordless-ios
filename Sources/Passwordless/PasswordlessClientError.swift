@@ -24,7 +24,7 @@ public enum PasswordlessClientError: Error {
     case internalErrorNetworkRequestFailed(Error)
 
     /// An error response occurred when making a network request with the given status code and response body.
-    case internalErrorNetworkRequestResponseError(Int?, String)
+    case internalErrorNetworkRequestResponseError(Int?, PasswordlessErrorResponse?)
 
     /// The challenge provided is not in the correct format.
     case internalErrorUnableToDecodeChallenge

@@ -42,7 +42,13 @@ public class PasswordlessClient {
         self.keyProvider = keyProvider
     }
 
-    /// Asks Passwordless client to go through the Pass Key registration process to add a new user.
+    /// Cancels an existing request. Mostly used to cancel sign in with autofill enabled.
+    ///
+    public func cancelExistingRequests() async {
+        await keyProvider.cancelExistingRequest()
+    }
+
+    /// Asks Passwordless client to go through the passkey attestation process to add a new user.
     ///
     /// - Parameter token: A token provided from the relying party backend.
     ///
@@ -65,22 +71,53 @@ public class PasswordlessClient {
         return completeResponse.token
     }
 
-
-    /// Asks Passwordless client to go through the Pass Key registration process to sign in an user. Providing no alias will put the
-    /// Apple authorization into auto fill mode (AKA quick action from the virtual keyboard). Apple recommends you run autofill mode
-    /// as soon as a sign in field is presented. This allows the keyboard to have enough time to warm up with results by the time it is
-    /// shown to a user.
+    /// Asks Passwordless client to go through the passkey assertion process to sign in a user with the given alias.
     ///
-    /// - Parameter alias: An optional username to trigger the authorization.
+    /// - Parameter alias: A username to trigger the authorization.
     ///
     /// - Returns: A token that can be verified by the relying party backend.
     ///
-    public func signIn(alias: String? = nil) async throws -> String {
-        let signInResponse = try await apiService.signInBegin(alias: alias)
+    public func signIn(alias: String) async throws -> String {
+        try await signIn(alias: alias, userId: nil)
+    }
+
+    /// Asks Passwordless client to go through the passkey assertion process to sign in a user with the given userId.
+    ///
+    /// - Parameter userId: A userId to trigger the authorization.
+    ///
+    /// - Returns: A token that can be verified by the relying party backend.
+    ///
+    public func signIn(userId: String) async throws -> String {
+        try await signIn(alias: nil, userId: userId)
+    }
+
+    /// Asks Passwordless client to begin the passkey assertion process to sign in a user with auto fill. This will put the
+    /// Apple authorization into auto fill mode (AKA quick action from the virtual keyboard). Apple recommends you run auto fill mode
+    /// as soon as a sign in field is presented. This allows the keyboard to have enough time to warm up with results by the time it is
+    /// shown to a user.
+    ///
+    /// - Returns: A token that can be verified by the relying party backend.
+    ///
+    public func signInWithAutofill() async throws -> String {
+        try await signIn(alias: nil, userId: nil)
+    }
+
+    /// Asks Passwordless client to go through the passkey assertion process to sign in an user. This is the same as
+    /// signIn(alias:) but with no alias set.
+    ///
+    /// - Returns: A token that can be verified by the relying party backend.
+    ///
+    public func signinWithDiscoverable() async throws -> String {
+        try await signIn(alias: "")
+    }
+
+    /// Handles the sign in begin request, assertion request with Apple, and the sign in completion request with the passwordless.dev API.
+    private func signIn(alias: String?, userId: String?) async throws -> String {
+        let signInResponse = try await apiService.signInBegin(alias: alias, userId: userId)
 
         let response = try await keyProvider.requestAssertion(
             signInResponse: signInResponse,
-            autoFill: alias == nil
+            autoFill: alias == nil && userId == nil
         )
 
         let request = SignInCompleteRequest(
@@ -92,11 +129,5 @@ public class PasswordlessClient {
 
         let completeResponse = try await apiService.signInComplete(requestModel: request)
         return completeResponse.token
-    }
-
-    /// Cancels an existing request. Mostly used to cancel sign in with autofill enabled.
-    ///
-    public func cancelExistingRequests() async {
-        await keyProvider.cancelExistingRequest()
     }
 }
