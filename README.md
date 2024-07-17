@@ -174,3 +174,7 @@ For example, let's say your AASA file looks like this:
 To run the demo app without errors, the app's bundle ID must be `com.8bit.bitwarden.passwordlessios`. Furthermore, your personal developer account must have access to the team ID `Q999999997`.
 
 In the `DemoServices.swift` file, the relying party ID (`rpID`) should be set to the domain where this AASA file is hosted.
+
+## References
+
+* [Using the iOS client](https://docs.passwordless.dev/guide/frontend/ios.html)
