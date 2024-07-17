@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>bitwarden/renovate-config"],
+  "enabledManagers": ["github-actions", "swift"],
+  "packageRules": [
+    {
+      "groupName": "gh minor",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "groupName": "swift minor",
+      "matchManagers": ["swift"],
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ]
+}
