@@ -17,6 +17,9 @@ public struct PasswordlessConfig {
     /// The origin of the requesting application.
     public let origin: String
 
+    /// Configuration of the networking layer.
+    public let networking: PasswordlessNetworking
+
     /// Initializes a PasswordlessConfig.
     ///
     /// - Parameters:
@@ -24,16 +27,19 @@ public struct PasswordlessConfig {
     ///    - apiKey: The API key needed to access the API server.
     ///    - rpId: The relying party identifier.
     ///    - origin: The origin of the requesting application.
+    ///    - networking: Configuration of the networking layer.
     ///
     public init(
         apiUrl: String = "https://v4.passwordless.dev",
         apiKey: String,
         rpId: String,
-        origin: String? = nil
+        origin: String? = nil,
+        networking: PasswordlessNetworking = DefaultPasswordlessNetworking()
     ) {
         self.apiUrl = apiUrl
         self.apiKey = apiKey
         self.rpId = rpId
+        self.networking = networking
 
         if let origin {
             self.origin = origin

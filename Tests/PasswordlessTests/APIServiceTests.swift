@@ -8,15 +8,16 @@ final class APIServiceTests: XCTestCase {
         let configuration = URLSessionConfiguration.default
         configuration.protocolClasses = [MockURLProtocol.self]
         let urlSession = URLSession.init(configuration: configuration)
+        let mockNetworking = MockPasswordlessNetworking(urlSession: urlSession)
 
         subject = APIService(
             config: PasswordlessConfig(
                 apiUrl: "https://example.com",
                 apiKey: "1234",
                 rpId: "example.com",
-                origin: "example.com"
-            ),
-            urlSession: urlSession
+                origin: "example.com",
+                networking: mockNetworking
+            )
         )
     }
 
@@ -74,15 +75,16 @@ final class APIServiceTests: XCTestCase {
         let configuration = URLSessionConfiguration.default
         configuration.protocolClasses = [MockURLProtocol.self]
         let urlSession = URLSession.init(configuration: configuration)
+        let mockNetworking = MockPasswordlessNetworking(urlSession: urlSession)
 
         subject = APIService(
             config: PasswordlessConfig(
                 apiUrl: "\":",
                 apiKey: "1234",
                 rpId: "example.com",
-                origin: "example.com"
-            ),
-            urlSession: urlSession
+                origin: "example.com",
+                networking: mockNetworking
+            )
         )
 
         do {

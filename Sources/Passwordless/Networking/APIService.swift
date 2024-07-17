@@ -9,22 +9,12 @@ class APIService {
     /// The configuration items needed to make API requests.
     private let config: PasswordlessConfig
 
-    /// The URLSession object used to make the network requests. 
-    private let urlSession: URLSession
-
     /// Initializes an APIService.
     ///
-    /// - Parameters:
-    ///    - config: The configuration items needed to make API requests.
-    ///    - urlSession: The URLSession object used to make the network requests. Defaults to shared.
-    ///    Used for injection for testing purposes.
+    /// - Parameter config: The configuration items needed to make API requests.
     ///
-    init(
-        config: PasswordlessConfig,
-        urlSession: URLSession = URLSession.shared
-    ) {
+    init(config: PasswordlessConfig) {
         self.config = config
-        self.urlSession = urlSession
     }
 }
 
@@ -118,6 +108,7 @@ extension APIService{
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = try JSONEncoder().encode(body)
+        request = config.networking.on(request: request)
         return request
     }
 
@@ -136,7 +127,7 @@ extension APIService{
         let dataString: String
         var httpResponse: HTTPURLResponse?
         do {
-            let response = try await urlSession.data(for: updatedRequest)
+            let response = try await config.networking.urlSession.data(for: updatedRequest)
             data = response.0
             dataString = String(data: data, encoding: .utf8) ?? "Empty response"
             httpResponse = response.1 as? HTTPURLResponse
