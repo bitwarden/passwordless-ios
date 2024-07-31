@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = "Passwordless"
-  s.version = "0.0.1"
+  s.version = "1.0.0"
   s.summary = "Passwordless.dev's iOS SDK for passkey integration"
   s.description = <<-DESC
   The purpose of this SDK is to be able to easily integrate passkeys(https://developer.apple.com/passkeys/)
