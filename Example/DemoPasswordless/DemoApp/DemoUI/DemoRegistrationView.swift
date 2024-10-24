@@ -8,6 +8,7 @@ struct DemoRegistrationView: View {
     @State private var username: String = ""
     @State private var firstName: String = ""
     @State private var lastName: String = ""
+    @State private var nickname: String = ""
 
     var body: some View {
         VStack {
@@ -18,6 +19,9 @@ struct DemoRegistrationView: View {
                 .textFieldStyle(.roundedBorder)
                 .autocorrectionDisabled()
             TextField("Last Name", text: $lastName)
+                .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
+            TextField("Nickname", text: $nickname)
                 .textFieldStyle(.roundedBorder)
                 .autocorrectionDisabled()
             requestButton
@@ -65,7 +69,9 @@ extension DemoRegistrationView {
                 ).token
 
                 // 2. Register the token through the SDK, which creates a private key for the token.
-                let verifyToken = try await environment.services.passwordlessClient.register(token: registrationToken)
+                let verifyToken = try await environment.services.passwordlessClient.register(
+                    token: registrationToken,
+                    nickname: nickname)
                 
                 // 3. With the resulting token from the SDK, verify it with your backend to get an authorization token.
                 let jwtToken = await environment.services.demoAPIService.login(verifyToken: verifyToken)
