@@ -51,10 +51,11 @@ public class PasswordlessClient {
     /// Asks Passwordless client to go through the passkey attestation process to add a new user.
     ///
     /// - Parameter token: A token provided from the relying party backend.
+    /// - Parameter nickname: (optional) A user-friendly identifier for the token, e.g. "Work Laptop"
     ///
     /// - Returns: A token that can be verified by the relying party backend.
     ///
-    public func register(token: String) async throws -> String {
+    public func register(token: String, nickname: String? = nil) async throws -> String {
         let registerResponse = try await apiService.registerBegin(token: token)
 
         let response = try await keyProvider.requestAuthorization(registerResponse: registerResponse)
@@ -64,7 +65,7 @@ public class PasswordlessClient {
             response: response,
             origin: config.origin,
             rpId: config.rpId,
-            nickname: nil
+            nickname: nickname
         )
 
         let completeResponse = try await apiService.registerComplete(requestModel: request)
