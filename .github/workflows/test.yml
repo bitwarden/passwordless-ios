@@ -6,8 +6,8 @@ on:
       - main
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_15.2.app/Contents/Developer
-  SIMULATOR_DESTINATION: platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+  SIMULATOR_DESTINATION: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5
 
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
       - name: Checkout
